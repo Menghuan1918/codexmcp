@@ -119,7 +119,7 @@ async def codex(
     skip_git_repo_check: Annotated[
         bool,
         "Allow codex running outside a Git repository (useful for one-off directories).",
-    ] = False,
+    ] = True,
     return_all_messages: Annotated[
         bool,
         "Return all messages (e.g. reasoning, tool calls, etc.) from the codex session. Set to `False` by default, only the agent's final reply message is returned.",
@@ -164,6 +164,10 @@ async def codex(
     if thread_id is None:
         success = False
         err_message = "Failed to get `SESSION_ID` from the codex session. \n\n" + err_message
+        
+    if len(agent_messages) == 0:
+        success = False
+        err_message = "Failed to get `agent_messages` from the codex session. \n\nYou can try to set `return_all_messages` to `True` to get the full reasoning information. \n\n"
 
     if success:
         result: Dict[str, Any] = {
