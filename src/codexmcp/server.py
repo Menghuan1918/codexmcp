@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import queue
+import re
 import subprocess
 import threading
 import uuid
@@ -219,8 +220,11 @@ async def codex(
                 success = False if len(agent_messages) == 0 else success
                 err_message = "codex error: " + line_dict.get("error", {}).get("message", "")
             if "error" in line_dict.get("type", ""):
-                success = False if len(agent_messages) == 0 else success
-                err_message = "codex error: " + line_dict.get("message", "")   
+                error_msg = line_dict.get("message", "")
+                is_reconnecting = bool(re.match(r'^Reconnecting\.\.\.\s+\d+/\d+$', error_msg))
+                if not is_reconnecting:
+                    success = False if len(agent_messages) == 0 else success
+                    err_message = "codex error: " + error_msg
         except json.JSONDecodeError as error:
             # Improved error handling: include problematic line
             err_message = line
